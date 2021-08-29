@@ -2,6 +2,8 @@
 
 const express = require('express');
 const fs = require('fs');
+const path = require('path')
+
 const multer  = require('multer');
 const tf = require('@tensorflow/tfjs-node');
 const posenet = require('@tensorflow-models/posenet');
@@ -9,14 +11,14 @@ const posenet = require('@tensorflow-models/posenet');
 const app = express();
 const port = 3000;
 const source = 'source/';
-const upload = multer({ dest: source });
 
 const storage = multer.diskStorage({
     destination: source,
     filename: function(req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
+	    cb(null, Date.now() + path.extname(file.originalname));
     }
 });
+const upload = multer({ storage: storage });
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
@@ -28,7 +30,7 @@ app.get('/', (req, res) => {
     2a) Send request to lamp
   3) Delete the image
 */
-app.post('/upload', async (req, res) => {
+app.post('/upload', upload.single('file'), async (req, res) => {
   if (!fs.existsSync(source)) {
     fs.mkdirSync(source);
   }
