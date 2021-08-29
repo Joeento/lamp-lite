@@ -45,7 +45,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     inputResolution: 513,
     multiplier: 0.75
   });
-  const canvas = pathToImageCanvas(req.file.path);
+  const canvas = await pathToImageCanvas(req.file.path);
   const input = tf.browser.fromPixels(canvas);
   const pose = await net.estimateSinglePose(input, imageScaleFactor, flipHorizontal, outputStride);
   console.log(pose);
