@@ -11,6 +11,7 @@
     "@tensorflow/tfjs-node": "^3.8.0",
     "botkit": "^4.10.0",
     "canvas": "^2.8.0",
+    "express": "^4.17.1",
     "rollup": "^2.56.3"
   }
 }
