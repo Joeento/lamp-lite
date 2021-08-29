@@ -3,14 +3,19 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path')
-
 const multer  = require('multer');
+const { createCanvas, Image } = require('canvas');
+
 const tf = require('@tensorflow/tfjs-node');
 const posenet = require('@tensorflow-models/posenet');
 
 const app = express();
 const port = 3000;
+
 const source = 'source/';
+const imageScaleFactor = 0.5;
+const outputStride = 16;
+const flipHorizontal = false;
 
 const storage = multer.diskStorage({
     destination: source,
@@ -34,10 +39,30 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   if (!fs.existsSync(source)) {
     fs.mkdirSync(source);
   }
-  console.log(req.file);
+  const net = await posenet.load({
+    architecture: 'MobileNetV1',
+    outputStride: 16,
+    inputResolution: 513,
+    multiplier: 0.75
+  });
+  const canvas = pathToImageCanvas(req.file.path);
+  const input = tf.browser.fromPixels(canvas);
+  const pose = await net.estimateSinglePose(input, imageScaleFactor, flipHorizontal, outputStride);
+  console.log(pose);
+
   res.send('Hello World!');
 });
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
 });
+
+//Helpers
+const pathToImageCanvas = async (path) => {
+    const img = new Image();
+    img.src = path;
+    const canvas = await createCanvas(img.width, img.height);
+    const ctx = await canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    return canvas;
+};
