@@ -50,6 +50,8 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   const pose = await net.estimateSinglePose(input, imageScaleFactor, flipHorizontal, outputStride);
   console.log(pose);
 
+  const result = drawSkeleton(canvas, pose);
+  saveToFile(canvas);
   res.send('Hello World!');
 });
 
@@ -65,4 +67,24 @@ const pathToImageCanvas = async (path) => {
     const ctx = await canvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
     return canvas;
+};
+
+const drawSkeleton = async (canvas, pose) => {
+  const ctx = await canvas.getContext('2d');
+  const radius = 10;
+  for (const keypoint of pose) {
+    ctx.beginPath();
+    ctx.arc(keypoint.position.x, keypoint.position.x, radius, 0, 2 * Math.PI, false);
+    ctx.fillStyle = 'green';
+    ctx.fill();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = 'black';
+    ctx.stroke();
+  }
+  return canvas;
+};
+
+const saveToFile = (canvas) => {
+  const buffer = canvas.toBuffer('image/png')
+  fs.writeFileSync('./output.png', buffer)
 };
